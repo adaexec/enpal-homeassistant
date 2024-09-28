@@ -51,7 +51,7 @@ async def async_setup_entry(
     if not 'enpal_token' in config:
         _LOGGER.error("No enpal_token in config entry")
         return
-    
+
     global_config = hass.data[DOMAIN]
 
     tables = await hass.async_add_executor_job(get_tables, config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'])
@@ -69,6 +69,8 @@ async def async_setup_entry(
             to_add.append(EnpalSensor(field, measurement, 'mdi:home-lightning-bolt', 'Enpal Power External Total', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
         if measurement == "inverter" and field == "Inverter.System.State":
             to_add.append(EnpalSensor(field, measurement, 'mdi:solar-power', 'Enpal Inverter State', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', ''))
+        if measurement == "inverter" and field == "Temperature.Housing.Inside":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:thermometer', 'Enpal Inverter Temperature', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'temperature', 'C'))
 
         # Consum Total per Day
         if measurement == "system" and field == "Energy.Consumption.Total.Day":
@@ -83,7 +85,27 @@ async def async_setup_entry(
         # Solar Energy.Production.Total.Day
         if measurement == "system" and field == "Energy.Production.Total.Day":
             to_add.append(EnpalSensor(field, measurement, 'mdi:solar-power-variant', 'Enpal Production Day', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'energy', 'kWh'))
-            
+
+        # Solar String 1
+        if measurement == "inverter" and field == "Current.String.1":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 1 Current', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'current', 'A'))
+
+        if measurement == "inverter" and field == "Voltage.String.1":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 1 Voltage', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'voltage', 'V'))
+
+        if measurement == "inverter" and field == "Power.DC.String.1":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 1 Power', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
+
+        # Solar String 2
+        if measurement == "inverter" and field == "Current.String.2":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 2 Current', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'current', 'A'))
+
+        if measurement == "inverter" and field == "Voltage.String.2":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 2 Voltage', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'voltage', 'V'))
+
+        if measurement == "inverter" and field == "Power.DC.String.2":
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal String 2 Power', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
+
         #Power Sensor
         if measurement == "powerSensor" and field == "Voltage.Phase.A":
             to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Voltage Phase A', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'voltage', 'V'))
@@ -96,15 +118,15 @@ async def async_setup_entry(
         if measurement == "powerSensor" and field == "Current.Phase.B":
             to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Ampere Phase B', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'current', 'A'))
         if measurement == "powerSensor" and field == "Power.AC.Phase.B":
-            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Power Phase B', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))        
+            to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Power Phase B', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
         if measurement == "powerSensor" and field == "Voltage.Phase.C":
             to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Voltage Phase C', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'voltage', 'V'))
         if measurement == "powerSensor" and field == "Current.Phase.C":
             to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Ampere Phase C', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'current', 'A'))
         if measurement == "powerSensor" and field == "Power.AC.Phase.C":
             to_add.append(EnpalSensor(field, measurement, 'mdi:lightning-bolt', 'Enpal Power Phase C', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
-        
-        #Battery    
+
+        #Battery
         if measurement == "battery" and field == "Power.Battery.Charge.Discharge":
             to_add.append(EnpalSensor(field, measurement, 'mdi:battery-charging', 'Enpal Battery Power', config['enpal_host_ip'], config['enpal_host_port'], config['enpal_token'], 'power', 'W'))
         if measurement == "battery" and field == "Energy.Battery.Charge.Level":
@@ -209,7 +231,7 @@ class EnpalSensor(SensorEntity):
                 if self._attr_native_value <= 49 and self._attr_native_value >= 40:
                     self._attr_icon = "mdi:battery-40"
                 if self._attr_native_value <= 59 and self._attr_native_value >= 50:
-                    self._attr_icon = "mdi:battery-50"    
+                    self._attr_icon = "mdi:battery-50"
                 if self._attr_native_value <= 69 and self._attr_native_value >= 60:
                     self._attr_icon = "mdi:battery-60"
                 if self._attr_native_value <= 79 and self._attr_native_value >= 70:
@@ -217,10 +239,10 @@ class EnpalSensor(SensorEntity):
                 if self._attr_native_value <= 89 and self._attr_native_value >= 80:
                     self._attr_icon = "mdi:battery-80"
                 if self._attr_native_value <= 99 and self._attr_native_value >= 90:
-                    self._attr_icon = "mdi:battery-90"        
+                    self._attr_icon = "mdi:battery-90"
                 if self._attr_native_value == 100:
                     self._attr_icon = "mdi:battery"
-                
+
         except Exception as e:
             _LOGGER.error(f'{e}')
             self._state = 'Error'
